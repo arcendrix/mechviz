@@ -15,9 +15,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Reassemble project archive
         run: |
-          cat bootstrap/part-* > /tmp/mechviz.tar.gz.b64
+          cat bootstrap/lite-* > /tmp/mechviz.tar.gz.b64
           base64 -d /tmp/mechviz.tar.gz.b64 > /tmp/mechviz.tar.gz
           tar -xzf /tmp/mechviz.tar.gz -C .
+      - name: Generate dependency lockfile
+        run: npm install --package-lock-only
+      - name: Validate Mechviz
+        run: |
+          npm ci
+          npm run lint
+          npm run typecheck
+          npm run test
       - name: Remove bootstrap files
         run: |
           rm -rf bootstrap bootstrap.ready .github/workflows/bootstrap.yml
