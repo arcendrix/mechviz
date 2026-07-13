@@ -9,6 +9,20 @@ function include_(fileName) {
   return HtmlService.createHtmlOutputFromFile(fileName).getContent();
 }
 
+function serializeForClient_(value) {
+  if (value === null || value === undefined) return value;
+  if (value instanceof Date) return value.toISOString();
+  if (Array.isArray(value)) return value.map(serializeForClient_);
+  if (typeof value === 'object') {
+    const output = {};
+    Object.keys(value).forEach(key => {
+      if (key !== '_row') output[key] = serializeForClient_(value[key]);
+    });
+    return output;
+  }
+  return value;
+}
+
 function api(action, payload) {
   payload = payload || {};
   try {
@@ -20,7 +34,7 @@ function api(action, payload) {
       adminStats: apiAdminStats
     };
     if (!routes[action]) throw new Error('Unknown action.');
-    return {ok: true, data: routes[action](payload)};
+    return {ok: true, data: serializeForClient_(routes[action](payload))};
   } catch (error) {
     logError_(error, {route: action, publicMessage: error.message || 'Request failed.'});
     return {ok: false, error: error.message || 'Request failed.'};
