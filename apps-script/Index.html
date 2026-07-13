@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    :root{--ink:#111827;--muted:#64748b;--line:#dbe2ea;--panel:#fff;--bg:#f3f6f8;--accent:#e8672a}
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    button,input,textarea,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+    header{height:66px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+    .brand{font-weight:800;font-size:22px;letter-spacing:.04em}.brand span{color:#fb923c}.shell{max-width:1420px;margin:auto;padding:28px}
+    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:stretch}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 8px 30px rgba(15,23,42,.06)}
+    h1{font-size:clamp(38px,6vw,72px);line-height:.95;margin:0 0 18px;letter-spacing:-.055em}h2{margin:0 0 18px}p{color:var(--muted);line-height:1.6}.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:700}.primary{background:var(--accent);color:#fff}.secondary{background:#e2e8f0;color:#0f172a}
+    .grid{display:grid;gap:18px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.field{display:grid;gap:7px}.field label{font-size:13px;font-weight:700}.field input,.field textarea,.field select{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:#fff}.field textarea{min-height:110px;resize:vertical}
+    .auth{max-width:520px;margin:40px auto}.tabs{display:flex;gap:8px;margin-bottom:18px}.tabs button{flex:1}.topline{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}.projects{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}.project{cursor:pointer;transition:.15s}.project:hover{transform:translateY(-2px);border-color:#94a3b8}.tag{font-size:12px;font-weight:700;background:#e2e8f0;border-radius:999px;padding:6px 9px;display:inline-flex}
+    .studio{display:grid;grid-template-columns:300px minmax(0,1fr) 330px;gap:16px}.viewer{min-height:620px;display:grid;place-items:center;background:#e8edf1;border-radius:13px;overflow:hidden}.viewer img{width:100%;height:100%;object-fit:contain}.thumb{width:100%;aspect-ratio:4/3;object-fit:contain;background:#eef2f6;border-radius:10px;border:1px solid var(--line)}.history{display:grid;gap:10px;max-height:430px;overflow:auto}.history button{padding:0;border:2px solid transparent;background:none;border-radius:10px}.history button.active{border-color:var(--accent)}.notice{padding:12px;border-radius:9px;background:#fff7ed;color:#9a3412;font-size:13px}.error{color:#b91c1c;font-weight:700}.success{color:#166534;font-weight:700}
+    @media(max-width:980px){.hero,.studio{grid-template-columns:1fr}.viewer{min-height:420px}.two{grid-template-columns:1fr}.shell{padding:18px}}
+  </style>
+</head>
+<body>
+<header><div class="brand">MECH<span>VIZ</span></div><div id="headerActions"></div></header>
+<main class="shell">
+  <section id="landing" class="hero">
+    <div class="card"><span class="tag">AI MECHANICAL VISUALIZATION</span><h1>Turn rough sketches into polished 3D concepts.</h1><p>Upload a mechanical sketch or photo, choose the finish and viewpoint, and generate a professional concept render. Revise it in plain English.</p><button class="btn primary" onclick="showAuth()">Create your first render</button></div>
+    <div class="card"><h2>What Mechviz does</h2><div class="grid"><p><b>1. Upload</b><br>Use a hand sketch, whiteboard photo or basic drawing.</p><p><b>2. Render</b><br>OpenAI converts the reference into a clean mechanical visualization.</p><p><b>3. Revise</b><br>Change materials, viewpoints or specific features without starting over.</p><div class="notice">Concept visualizations are not certified CAD or manufacturing drawings.</div></div></div>
+  </section>
+
+  <section id="auth" class="card auth hidden">
+    <div class="tabs"><button id="loginTab" class="btn primary" onclick="setAuthMode('login')">Log in</button><button id="signupTab" class="btn secondary" onclick="setAuthMode('signup')">Create account</button></div>
+    <div id="nameField" class="field hidden"><label>Name</label><input id="authName"></div>
+    <div class="field"><label>Email</label><input id="authEmail" type="email"></div><br>
+    <div class="field"><label>Password</label><input id="authPassword" type="password"></div><br>
+    <button class="btn primary" onclick="submitAuth()" id="authSubmit">Log in</button><p id="authMessage"></p>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <div class="topline"><div><h2>Your projects</h2><p>Each project keeps its source image, render history and approved result.</p></div><button class="btn primary" onclick="showNewProject()">New project</button></div>
+    <div id="projectList" class="projects"></div>
+  </section>
+
+  <section id="newProject" class="card hidden">
+    <div class="topline"><h2>Create a project</h2><button class="btn secondary" onclick="showDashboard()">Cancel</button></div>
+    <div class="grid two">
+      <div class="field"><label>Project name</label><input id="projectName" placeholder="Mounting bracket"></div>
+      <div class="field"><label>Render style</label><select id="renderStyle"><option value="clean_cad">Clean CAD style</option><option value="technical">Technical illustration</option><option value="photorealistic">Photorealistic</option><option value="exploded">Exploded view</option><option value="cutaway">Cutaway concept</option><option value="white_background">White background</option></select></div>
+      <div class="field"><label>Viewpoint</label><select id="viewpoint"><option>isometric</option><option>front three-quarter</option><option>side view</option><option>top view</option></select></div>
+      <div class="field"><label>Material</label><input id="material" value="machined aluminum"></div>
+    </div><br>
+    <div class="field"><label>Description and details that matter</label><textarea id="projectDescription" placeholder="Describe the object, approximate dimensions and features that must not change."></textarea></div><br>
+    <div class="field"><label>Source image</label><input id="sourceFile" type="file" accept="image/png,image/jpeg,image/webp"></div><br>
+    <button class="btn primary" onclick="createProject()">Create project</button><p id="projectMessage"></p>
+  </section>
+
+  <section id="studio" class="hidden">
+    <div class="topline"><div><h2 id="studioTitle">Project</h2><p id="studioDescription"></p></div><button class="btn secondary" onclick="showDashboard()">All projects</button></div>
+    <div class="studio">
+      <aside class="card"><h3>Source</h3><img id="sourcePreview" class="thumb"><p class="notice">The source is treated as the geometry reference. The result is still an AI interpretation.</p><h3>History</h3><div id="renderHistory" class="history"></div></aside>
+      <section class="card"><div id="viewer" class="viewer"><p>No render yet.</p></div><div style="display:flex;gap:10px;margin-top:14px"><button class="btn secondary" onclick="downloadRender()">Download PNG</button><button class="btn primary" onclick="approveRender()">Approve render</button></div></section>
+      <aside class="card"><h3>Generate or revise</h3><div class="field"><label>Instruction</label><textarea id="renderInstruction" placeholder="Example: keep the geometry identical, change the finish to black anodized aluminum and show an isometric view."></textarea></div><br><button class="btn primary" id="generateButton" onclick="generateRender()">Generate render</button><p id="renderMessage"></p><hr style="border:0;border-top:1px solid var(--line);margin:24px 0"><h3>Feedback</h3><div class="field"><label>Overall rating</label><select id="rating"><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3">3 — Usable</option><option value="2">2 — Weak</option><option value="1">1 — Poor</option></select></div><br><div class="field"><label>Comments</label><textarea id="feedbackComments"></textarea></div><br><button class="btn secondary" onclick="submitFeedback()">Submit feedback</button></aside>
+    </div>
+  </section>
+</main>
+<script>
+let mode='login',token=localStorage.getItem('mechviz_token')||'',currentProject=null,currentRender=null;
+const sections=['landing','auth','dashboard','newProject','studio'];
+function show(id){sections.forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));updateHeader()}
+function call(action,payload={}){return new Promise((resolve,reject)=>google.script.run.withSuccessHandler(r=>r.ok?resolve(r.data):reject(new Error(r.error))).withFailureHandler(reject).api(action,{...payload,token}))}
+function updateHeader(){document.getElementById('headerActions').innerHTML=token?'<button class="btn secondary" onclick="logout()">Log out</button>':''}
+function showAuth(){show('auth')}
+function setAuthMode(v){mode=v;document.getElementById('nameField').classList.toggle('hidden',v==='login');document.getElementById('authSubmit').textContent=v==='login'?'Log in':'Create account';document.getElementById('loginTab').className='btn '+(v==='login'?'primary':'secondary');document.getElementById('signupTab').className='btn '+(v==='signup'?'primary':'secondary')}
+async function submitAuth(){const msg=document.getElementById('authMessage');try{msg.textContent='Working…';const data=await call(mode,{name:document.getElementById('authName').value,email:document.getElementById('authEmail').value,password:document.getElementById('authPassword').value});token=data.token;localStorage.setItem('mechviz_token',token);showDashboard()}catch(e){msg.className='error';msg.textContent=e.message}}
+async function logout(){await call('logout').catch(()=>{});token='';localStorage.removeItem('mechviz_token');show('landing')}
+async function showDashboard(){show('dashboard');const list=document.getElementById('projectList');list.innerHTML='<p>Loading…</p>';try{const data=await call('listProjects');list.innerHTML=data.projects.length?data.projects.map(p=>`<article class="card project" onclick="openProject('${p.projectId}')"><span class="tag">${p.status}</span><h3>${escapeHtml(p.name)}</h3><p>${escapeHtml(p.description||'No description')}</p><small>${new Date(p.updatedAt).toLocaleString()}</small></article>`).join(''):'<div class="card"><h3>No projects yet</h3><p>Create the first Mechviz render.</p></div>'}catch(e){if(/sign in|expired/i.test(e.message))logout();else list.innerHTML='<p class="error">'+escapeHtml(e.message)+'</p>'}}
+function showNewProject(){show('newProject')}
+function fileToDataUrl(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+async function createProject(){const msg=document.getElementById('projectMessage'),file=document.getElementById('sourceFile').files[0];try{if(!file)throw new Error('Choose a source image.');msg.textContent='Uploading…';const dataUrl=await fileToDataUrl(file);const data=await call('createProject',{project:{name:document.getElementById('projectName').value,description:document.getElementById('projectDescription').value,renderStyle:document.getElementById('renderStyle').value,viewpoint:document.getElementById('viewpoint').value,material:document.getElementById('material').value,background:'white studio',source:{fileName:file.name,dataUrl}}});await openProject(data.project.project_id)}catch(e){msg.className='error';msg.textContent=e.message}}
+async function openProject(id){show('studio');const data=await call('getProject',{projectId:id});currentProject=data;document.getElementById('studioTitle').textContent=data.project.project_name;document.getElementById('studioDescription').textContent=data.project.description||'';document.getElementById('sourcePreview').src=data.sourceDataUrl;renderHistory(data.renders);if(data.renders.length)selectRender(data.renders[data.renders.length-1]);else{currentRender=null;document.getElementById('viewer').innerHTML='<p>No render yet. Add an instruction and generate one.</p>'}}
+function renderHistory(renders){document.getElementById('renderHistory').innerHTML=renders.length?renders.map((r,i)=>`<button onclick="selectRenderByIndex(${i})"><img class="thumb" src="${r.dataUrl}"><small>Revision ${r.revisionNumber}${r.approved?' — approved':''}</small></button>`).join(''):'<p>No renders yet.</p>'}
+function selectRenderByIndex(index){if(currentProject&&currentProject.renders&&currentProject.renders[index])selectRender(currentProject.renders[index])}
+function selectRender(r){currentRender=r;document.getElementById('viewer').innerHTML=`<img src="${r.dataUrl}" alt="Mechanical concept render">`;document.querySelectorAll('.history button').forEach(x=>x.classList.remove('active'))}
+async function generateRender(){const btn=document.getElementById('generateButton'),msg=document.getElementById('renderMessage');try{btn.disabled=true;msg.textContent='OpenAI is generating the render…';const data=await call('generateRender',{projectId:currentProject.project.project_id,parentRenderId:currentRender?currentRender.renderId:'',instruction:document.getElementById('renderInstruction').value});currentRender=data.render;await openProject(currentProject.project.project_id);msg.className='success';msg.textContent='Render complete.'}catch(e){msg.className='error';msg.textContent=e.message}finally{btn.disabled=false}}
+async function approveRender(){if(!currentRender)return;await call('approveRender',{projectId:currentProject.project.project_id,renderId:currentRender.renderId});await openProject(currentProject.project.project_id)}
+function downloadRender(){if(!currentRender)return;const a=document.createElement('a');a.href=currentRender.dataUrl;a.download=(currentProject.project.project_name||'mechviz')+'.png';a.click()}
+async function submitFeedback(){if(!currentProject)return;await call('submitFeedback',{projectId:currentProject.project.project_id,renderId:currentRender?currentRender.renderId:'',rating:Number(document.getElementById('rating').value),accuracyRating:Number(document.getElementById('rating').value),usefulnessRating:Number(document.getElementById('rating').value),comments:document.getElementById('feedbackComments').value});alert('Feedback saved.')}
+function escapeHtml(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+(async()=>{updateHeader();if(token){try{await call('me');showDashboard()}catch(e){token='';localStorage.removeItem('mechviz_token');show('landing')}}else show('landing')})();
+</script>
+</body>
+</html>
