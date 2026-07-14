@@ -1,87 +1,1439 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090c11">
+  <title>Mechviz</title>
   <style>
-    :root{--ink:#111827;--muted:#64748b;--line:#dbe2ea;--panel:#fff;--bg:#f3f6f8;--accent:#e8672a}
-    *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-    button,input,textarea,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
-    header{height:66px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
-    .brand{font-weight:800;font-size:22px;letter-spacing:.04em}.brand span{color:#fb923c}.shell{max-width:1420px;margin:auto;padding:28px}
-    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:stretch}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 8px 30px rgba(15,23,42,.06)}
-    h1{font-size:clamp(38px,6vw,72px);line-height:.95;margin:0 0 18px;letter-spacing:-.055em}h2{margin:0 0 18px}p{color:var(--muted);line-height:1.6}.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:700}.primary{background:var(--accent);color:#fff}.secondary{background:#e2e8f0;color:#0f172a}.danger{background:#fee2e2;color:#991b1b}
-    .grid{display:grid;gap:18px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.field{display:grid;gap:7px}.field label{font-size:13px;font-weight:700}.field input,.field textarea,.field select{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:#fff}.field textarea{min-height:110px;resize:vertical}
-    .auth{max-width:520px;margin:40px auto}.tabs{display:flex;gap:8px;margin-bottom:18px}.tabs button{flex:1}.topline{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}.projects{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}.project{cursor:pointer;transition:.15s}.project:hover{transform:translateY(-2px);border-color:#94a3b8}.tag{font-size:12px;font-weight:700;background:#e2e8f0;border-radius:999px;padding:6px 9px;display:inline-flex}
-    .studio{display:grid;grid-template-columns:300px minmax(0,1fr) 330px;gap:16px}.viewer{min-height:620px;display:grid;place-items:center;background:#e8edf1;border-radius:13px;overflow:hidden}.viewer img{width:100%;height:100%;object-fit:contain}.thumb{width:100%;aspect-ratio:4/3;object-fit:contain;background:#eef2f6;border-radius:10px;border:1px solid var(--line)}.history{display:grid;gap:10px;max-height:430px;overflow:auto}.history button{padding:0;border:2px solid transparent;background:none;border-radius:10px}.history button.active{border-color:var(--accent)}.notice{padding:12px;border-radius:9px;background:#fff7ed;color:#9a3412;font-size:13px}.error{color:#b91c1c;font-weight:700}.success{color:#166534;font-weight:700}.loading{opacity:.55;pointer-events:none}
-    @media(max-width:980px){.hero,.studio{grid-template-columns:1fr}.viewer{min-height:420px}.two,.three{grid-template-columns:1fr}.shell{padding:18px}}
+    :root {
+      --bg: #090c11;
+      --bg-soft: #0d1118;
+      --panel: rgba(18, 23, 31, .94);
+      --panel-strong: #151b24;
+      --panel-light: #1a212c;
+      --line: rgba(255, 255, 255, .09);
+      --line-strong: rgba(255, 255, 255, .16);
+      --text: #f6f7fb;
+      --muted: #9199a8;
+      --muted-2: #697282;
+      --accent: #ff6b35;
+      --accent-light: #ff986f;
+      --accent-wash: rgba(255, 107, 53, .13);
+      --success: #45d39a;
+      --success-wash: rgba(69, 211, 154, .12);
+      --danger: #ff6b78;
+      --danger-wash: rgba(255, 107, 120, .12);
+      --warning: #f6c85f;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .34);
+      --radius-xl: 26px;
+      --radius-lg: 18px;
+      --radius-md: 13px;
+      --radius-sm: 9px;
+      --header-h: 72px;
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: dark; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% -10%, rgba(255, 107, 53, .15), transparent 30%),
+        radial-gradient(circle at 90% 15%, rgba(67, 111, 255, .09), transparent 26%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; }
+    .hidden { display: none !important; }
+
+    .ambient-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .18;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, black, transparent 82%);
+      z-index: -1;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(9, 12, 17, .82);
+      backdrop-filter: blur(20px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      color: var(--text);
+      text-decoration: none;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      font-weight: 850;
+      letter-spacing: -.03em;
+      font-size: 21px;
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 33px;
+      height: 33px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: linear-gradient(145deg, #ff875c, #e94d19);
+      box-shadow: 0 9px 28px rgba(255,107,53,.26), inset 0 1px 0 rgba(255,255,255,.35);
+    }
+
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      border: 2px solid rgba(255,255,255,.92);
+      transform: rotate(30deg) skewY(-8deg);
+    }
+    .brand-mark::before { width: 13px; height: 13px; border-radius: 3px; }
+    .brand-mark::after { width: 7px; height: 7px; border-radius: 2px; opacity: .65; }
+    .brand-word span { color: var(--accent-light); }
+
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-right: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, #252e3b, #171d26);
+      border: 1px solid var(--line-strong);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .shell { width: min(1540px, 100%); margin: 0 auto; padding: 34px 30px 56px; }
+    .landing-shell { width: min(1260px, 100%); margin: 0 auto; padding: 70px 30px 80px; }
+
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 42px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 10px 16px;
+      font-weight: 760;
+      font-size: 14px;
+      color: var(--text);
+      transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      box-shadow: 0 10px 26px rgba(255,107,53,.22), inset 0 1px 0 rgba(255,255,255,.28);
+    }
+    .btn-primary:hover:not(:disabled) { box-shadow: 0 13px 32px rgba(255,107,53,.32), inset 0 1px 0 rgba(255,255,255,.3); }
+    .btn-secondary { background: rgba(255,255,255,.055); border-color: var(--line); }
+    .btn-secondary:hover:not(:disabled) { background: rgba(255,255,255,.085); border-color: var(--line-strong); }
+    .btn-quiet { background: transparent; color: var(--muted); border-color: transparent; }
+    .btn-quiet:hover:not(:disabled) { background: rgba(255,255,255,.05); color: var(--text); }
+    .btn-success { background: var(--success-wash); color: #7cebbd; border-color: rgba(69,211,154,.24); }
+    .btn-block { width: 100%; }
+    .btn-lg { min-height: 50px; padding: 13px 20px; border-radius: 13px; font-size: 15px; }
+    .icon-btn { width: 40px; height: 40px; padding: 0; border-radius: 11px; }
+
+    .icon { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+    .icon-sm { width: 15px; height: 15px; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border: 1px solid rgba(255,107,53,.25);
+      border-radius: 999px;
+      background: var(--accent-wash);
+      color: #ffae8f;
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    .eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(255,107,53,.12); }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(48px, 7vw, 88px); line-height: .93; letter-spacing: -.065em; margin-bottom: 24px; }
+    h2 { font-size: clamp(28px, 4vw, 42px); letter-spacing: -.04em; margin-bottom: 10px; }
+    h3 { font-size: 17px; letter-spacing: -.02em; margin-bottom: 8px; }
+    p { color: var(--muted); line-height: 1.65; }
+    .lead { max-width: 690px; font-size: 18px; line-height: 1.65; color: #aeb5c2; }
+
+    .landing-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(460px, .95fr);
+      gap: 72px;
+      align-items: center;
+      min-height: calc(100vh - var(--header-h) - 160px);
+    }
+    .hero-copy { padding: 28px 0; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px; }
+    .hero-proof { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 34px; color: var(--muted); font-size: 13px; }
+    .proof-item { display: flex; align-items: center; gap: 8px; }
+    .proof-check { width: 21px; height: 21px; display: grid; place-items: center; border-radius: 50%; color: var(--success); background: var(--success-wash); }
+
+    .product-preview {
+      position: relative;
+      min-height: 590px;
+      border: 1px solid var(--line-strong);
+      border-radius: 30px;
+      background: linear-gradient(150deg, rgba(25,32,43,.96), rgba(12,16,22,.98));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .product-preview::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 30px 30px;
+      mask-image: radial-gradient(circle at 50% 45%, black, transparent 72%);
+    }
+    .preview-topbar {
+      position: relative;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(9,12,17,.55);
+    }
+    .window-dots { display: flex; gap: 7px; }
+    .window-dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.14); }
+    .window-dots i:first-child { background: var(--accent); }
+    .preview-status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .preview-status::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 0 4px rgba(69,211,154,.1); }
+    .preview-canvas { position: relative; min-height: 440px; display: grid; place-items: center; }
+    .metal-part {
+      position: relative;
+      width: 270px;
+      height: 220px;
+      transform: rotateX(58deg) rotateZ(-37deg);
+      transform-style: preserve-3d;
+      filter: drop-shadow(22px 35px 28px rgba(0,0,0,.42));
+    }
+    .metal-part .plate {
+      position: absolute;
+      inset: 24px 10px;
+      border-radius: 26px;
+      background: linear-gradient(145deg, #e7ebef 0%, #858e98 42%, #d6dce1 70%, #656e79 100%);
+      border: 1px solid rgba(255,255,255,.68);
+      box-shadow: inset -14px -16px 28px rgba(0,0,0,.28), inset 13px 13px 22px rgba(255,255,255,.38);
+    }
+    .metal-part .arm {
+      position: absolute;
+      left: 96px;
+      top: -38px;
+      width: 85px;
+      height: 200px;
+      border-radius: 22px;
+      background: linear-gradient(90deg, #767f89, #e0e5e9 44%, #6c7580);
+      box-shadow: inset -9px 0 18px rgba(0,0,0,.24), 10px 15px 24px rgba(0,0,0,.2);
+    }
+    .metal-part .hole { position: absolute; width: 32px; height: 32px; border-radius: 50%; background: #252c34; box-shadow: inset 5px 5px 8px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.35); z-index: 3; }
+    .metal-part .h1 { left: 44px; top: 64px; }
+    .metal-part .h2 { right: 40px; bottom: 55px; }
+    .metal-part .h3 { left: 123px; top: 10px; width: 27px; height: 27px; }
+    .preview-caption {
+      position: relative;
+      margin: 0 18px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(9,12,17,.62);
+      backdrop-filter: blur(12px);
+    }
+    .preview-caption p { margin: 3px 0 0; font-size: 12px; }
+
+    .feature-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 70px;
+    }
+    .feature-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      background: rgba(18,23,31,.56);
+      backdrop-filter: blur(12px);
+    }
+    .feature-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; color: var(--accent-light); background: var(--accent-wash); margin-bottom: 18px; }
+    .feature-card p { margin-bottom: 0; font-size: 14px; }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      box-shadow: 0 20px 60px rgba(0,0,0,.18);
+      backdrop-filter: blur(18px);
+    }
+
+    .auth-wrap { width: min(1040px, 100%); margin: 40px auto 0; display: grid; grid-template-columns: 1fr 480px; overflow: hidden; }
+    .auth-visual {
+      min-height: 610px;
+      padding: 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background:
+        radial-gradient(circle at 30% 18%, rgba(255,107,53,.24), transparent 33%),
+        linear-gradient(150deg, #161d27, #0e131b);
+      border-right: 1px solid var(--line);
+    }
+    .auth-blueprint {
+      min-height: 290px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .blueprint-shape { width: 170px; height: 125px; border: 2px solid rgba(255,152,111,.85); border-radius: 18px; position: relative; transform: rotate(-8deg); box-shadow: 0 0 32px rgba(255,107,53,.12); }
+    .blueprint-shape::before { content:""; position:absolute; width:38px; height:38px; border:2px solid rgba(255,152,111,.85); border-radius:50%; left:28px; top:40px; }
+    .blueprint-shape::after { content:""; position:absolute; width:78px; height:30px; border:2px solid rgba(255,152,111,.85); border-radius:8px; right:-36px; top:45px; }
+    .auth-form { padding: 46px; background: rgba(12,16,22,.88); }
+    .auth-tabs { display: flex; gap: 6px; padding: 5px; margin: 28px 0 30px; border-radius: 12px; background: rgba(255,255,255,.045); border: 1px solid var(--line); }
+    .auth-tabs button { flex: 1; min-height: 40px; border-radius: 9px; border: 0; background: transparent; color: var(--muted); font-weight: 750; }
+    .auth-tabs button.active { color: var(--text); background: var(--panel-light); box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+
+    .field { display: grid; gap: 8px; }
+    .field + .field { margin-top: 17px; }
+    .field label { color: #c9ced8; font-size: 12px; font-weight: 760; letter-spacing: .02em; }
+    .input-wrap { position: relative; }
+    .input-wrap .input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted-2); pointer-events: none; }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      outline: none;
+      border-radius: 12px;
+      background: rgba(255,255,255,.035);
+      color: var(--text);
+      padding: 12px 13px;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .field input.with-icon { padding-left: 42px; }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: rgba(255,107,53,.55);
+      background: rgba(255,255,255,.055);
+      box-shadow: 0 0 0 4px rgba(255,107,53,.09);
+    }
+    .field textarea { min-height: 126px; resize: vertical; line-height: 1.5; }
+    .field select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 18px) 52%, calc(100% - 13px) 52%; background-size: 5px 5px; background-repeat: no-repeat; }
+    .helper { color: var(--muted-2); font-size: 11px; line-height: 1.45; }
+    .form-message { min-height: 21px; margin: 14px 0 0; font-size: 13px; }
+    .form-message.error, .error { color: var(--danger); }
+    .form-message.success, .success { color: var(--success); }
+
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .page-head h2 { margin: 0; }
+    .page-head p { margin: 8px 0 0; }
+    .page-kicker { color: var(--accent-light); font-size: 11px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
+
+    .dashboard-summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(170px, .45fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .summary-main {
+      min-height: 170px;
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 90% 20%, rgba(255,107,53,.21), transparent 34%),
+        linear-gradient(135deg, rgba(26,33,44,.98), rgba(15,20,27,.98));
+    }
+    .summary-main::after { content:""; position:absolute; width:260px; height:260px; border:1px solid rgba(255,255,255,.055); border-radius:50%; right:-65px; top:-120px; box-shadow:0 0 0 42px rgba(255,255,255,.018),0 0 0 84px rgba(255,255,255,.012); }
+    .summary-main h3 { font-size: 25px; margin: 12px 0 8px; }
+    .summary-main p { max-width: 540px; margin: 0; font-size: 14px; }
+    .metric-card { padding: 24px; display: flex; flex-direction: column; justify-content: space-between; min-height: 170px; }
+    .metric-value { font-size: 39px; font-weight: 840; letter-spacing: -.05em; }
+    .metric-label { color: var(--muted); font-size: 12px; }
+    .metric-icon { width: 38px; height: 38px; display:grid; place-items:center; border-radius:12px; background:rgba(255,255,255,.045); color:var(--accent-light); }
+
+    .project-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 28px 0 14px; }
+    .project-toolbar h3 { margin: 0; }
+    .search-box { position: relative; width: min(320px, 100%); }
+    .search-box input { width:100%; height:42px; border:1px solid var(--line); border-radius:11px; background:rgba(255,255,255,.035); color:var(--text); outline:none; padding:0 14px 0 42px; }
+    .search-box svg { position:absolute; left:13px; top:12px; color:var(--muted-2); }
+    .projects { display: grid; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); gap: 14px; }
+    .project-card {
+      position: relative;
+      min-height: 226px;
+      padding: 20px;
+      overflow: hidden;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .project-card:hover { transform: translateY(-3px); border-color: var(--line-strong); background: #171d26; }
+    .project-card::before { content:""; position:absolute; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle, rgba(255,107,53,.1), transparent 68%); right:-40px; top:-50px; pointer-events:none; }
+    .project-card-top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .project-art { width:48px; height:48px; border-radius:14px; display:grid; place-items:center; background:linear-gradient(145deg, #242d39, #171d26); border:1px solid var(--line); color:var(--accent-light); }
+    .status-badge { display:inline-flex; align-items:center; gap:7px; min-height:27px; padding:0 9px; border-radius:999px; font-size:10px; font-weight:850; letter-spacing:.06em; text-transform:uppercase; color:#b8c0cc; background:rgba(255,255,255,.055); border:1px solid var(--line); }
+    .status-badge::before { content:""; width:6px; height:6px; border-radius:50%; background:#8e98a7; }
+    .status-badge.rendered::before { background:#70a9ff; }
+    .status-badge.approved { color:#87e9c0; background:var(--success-wash); border-color:rgba(69,211,154,.2); }
+    .status-badge.approved::before { background:var(--success); }
+    .project-card h3 { margin: 25px 0 8px; font-size: 19px; }
+    .project-card p { min-height: 44px; margin: 0 0 18px; font-size: 13px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .project-card-bottom { display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:15px; border-top:1px solid var(--line); color:var(--muted-2); font-size:11px; }
+    .project-open { color:#dbe0e8; display:flex; align-items:center; gap:6px; font-weight:760; }
+    .empty-state { grid-column:1/-1; padding:64px 28px; text-align:center; }
+    .empty-icon { width:64px; height:64px; margin:0 auto 18px; display:grid; place-items:center; border-radius:20px; color:var(--accent-light); background:var(--accent-wash); border:1px solid rgba(255,107,53,.18); }
+
+    .create-layout { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(360px,.55fr); gap:18px; }
+    .form-panel { padding:28px; }
+    .section-title { display:flex; align-items:center; gap:11px; margin-bottom:22px; }
+    .section-number { width:28px; height:28px; display:grid; place-items:center; border-radius:9px; background:var(--accent-wash); color:var(--accent-light); font-size:11px; font-weight:850; }
+    .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:17px; }
+    .form-grid .field + .field { margin-top:0; }
+    .divider { height:1px; background:var(--line); margin:27px 0; }
+    .drop-zone {
+      min-height: 330px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:30px;
+      border:1px dashed rgba(255,255,255,.22);
+      border-radius:19px;
+      background:
+        linear-gradient(rgba(255,255,255,.023) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.023) 1px, transparent 1px),
+        rgba(255,255,255,.018);
+      background-size:24px 24px;
+      transition:border-color .18s ease, background .18s ease, transform .18s ease;
+      overflow:hidden;
+      position:relative;
+    }
+    .drop-zone.dragging { border-color:var(--accent); background-color:var(--accent-wash); transform:scale(1.005); }
+    .drop-zone.has-file { padding:12px; }
+    .drop-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+    .drop-icon { width:58px; height:58px; display:grid; place-items:center; border-radius:18px; background:var(--accent-wash); color:var(--accent-light); margin-bottom:18px; }
+    .drop-zone h3 { margin-bottom:7px; }
+    .drop-zone p { margin:0; font-size:13px; }
+    .drop-preview { width:100%; height:100%; min-height:300px; object-fit:contain; border-radius:13px; background:#080b0f; }
+    .file-meta { display:flex; align-items:center; gap:10px; width:100%; padding:12px 4px 2px; color:var(--muted); font-size:11px; text-align:left; }
+    .create-side .tip-card { margin-top:14px; padding:20px; }
+    .tip-list { display:grid; gap:14px; margin-top:17px; }
+    .tip { display:flex; gap:11px; color:var(--muted); font-size:12px; line-height:1.5; }
+    .tip-check { width:20px; height:20px; display:grid; place-items:center; flex:0 0 auto; border-radius:7px; color:var(--success); background:var(--success-wash); }
+
+    .studio-shell { width:100%; max-width:none; padding:18px; }
+    .studio-head { height:58px; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:0 10px 0 6px; }
+    .studio-title-wrap { display:flex; align-items:center; gap:13px; min-width:0; }
+    .studio-title-wrap h2 { margin:0; font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .studio-title-wrap p { margin:2px 0 0; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:520px; }
+    .studio-actions { display:flex; align-items:center; gap:8px; }
+    .workspace {
+      height: calc(100vh - var(--header-h) - 94px);
+      min-height: 650px;
+      display:grid;
+      grid-template-columns: 260px minmax(520px,1fr) 340px;
+      gap:12px;
+    }
+    .workspace-panel { border:1px solid var(--line); border-radius:19px; background:rgba(16,21,28,.94); overflow:hidden; box-shadow:0 18px 50px rgba(0,0,0,.16); }
+    .panel-head { min-height:56px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 17px; border-bottom:1px solid var(--line); }
+    .panel-head h3 { margin:0; font-size:13px; }
+    .panel-label { color:var(--muted-2); font-size:10px; font-weight:850; letter-spacing:.09em; text-transform:uppercase; }
+    .asset-panel { display:flex; flex-direction:column; min-height:0; }
+    .asset-scroll { overflow:auto; padding:14px; scrollbar-width:thin; scrollbar-color:#303946 transparent; }
+    .source-frame { position:relative; aspect-ratio:4/3; border-radius:14px; overflow:hidden; background:#07090d; border:1px solid var(--line); }
+    .source-frame img { width:100%; height:100%; object-fit:contain; }
+    .source-tag { position:absolute; left:9px; bottom:9px; padding:6px 8px; border-radius:8px; background:rgba(5,7,10,.76); backdrop-filter:blur(8px); color:#c9cfd8; font-size:9px; font-weight:850; letter-spacing:.08em; text-transform:uppercase; }
+    .geometry-note { display:flex; gap:9px; padding:12px; margin:11px 0 18px; border:1px solid rgba(246,200,95,.14); border-radius:12px; background:rgba(246,200,95,.055); color:#c5ad72; font-size:10px; line-height:1.45; }
+    .history-list { display:grid; gap:9px; }
+    .history-item { width:100%; display:grid; grid-template-columns:66px 1fr; gap:10px; align-items:center; padding:7px; border:1px solid transparent; border-radius:12px; background:transparent; color:var(--text); text-align:left; }
+    .history-item:hover { background:rgba(255,255,255,.035); }
+    .history-item.active { background:var(--accent-wash); border-color:rgba(255,107,53,.24); }
+    .history-thumb { width:66px; aspect-ratio:4/3; object-fit:cover; border-radius:8px; background:#07090d; }
+    .history-copy strong { display:block; font-size:11px; margin-bottom:4px; }
+    .history-copy span { display:block; color:var(--muted-2); font-size:9px; }
+    .approved-line { color:var(--success)!important; }
+    .history-empty { padding:28px 10px; text-align:center; color:var(--muted-2); font-size:11px; }
+
+    .canvas-panel { display:flex; flex-direction:column; min-width:0; }
+    .canvas-toolbar { height:56px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0 14px; border-bottom:1px solid var(--line); }
+    .toolbar-group { display:flex; align-items:center; gap:6px; }
+    .tool-button { width:34px; height:34px; display:grid; place-items:center; border:1px solid transparent; border-radius:9px; background:transparent; color:var(--muted); }
+    .tool-button:hover { color:var(--text); background:rgba(255,255,255,.045); border-color:var(--line); }
+    .canvas-status { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:10px; font-weight:760; }
+    .canvas-status i { width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 0 4px var(--success-wash); }
+    .canvas-stage {
+      position:relative;
+      flex:1;
+      min-height:0;
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,.035), transparent 46%),
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+        #0b0f15;
+      background-size:auto,28px 28px,28px 28px,auto;
+    }
+    .canvas-stage::after { content:""; position:absolute; inset:22px; border:1px solid rgba(255,255,255,.035); border-radius:14px; pointer-events:none; }
+    .render-image { max-width:calc(100% - 70px); max-height:calc(100% - 70px); object-fit:contain; border-radius:8px; box-shadow:0 30px 80px rgba(0,0,0,.42); transition:transform .18s ease; transform-origin:center; }
+    .canvas-empty { max-width:390px; padding:30px; text-align:center; }
+    .empty-orbit { width:86px; height:86px; margin:0 auto 20px; border:1px solid rgba(255,107,53,.25); border-radius:50%; display:grid; place-items:center; position:relative; color:var(--accent-light); background:radial-gradient(circle, var(--accent-wash), transparent 68%); }
+    .empty-orbit::before,.empty-orbit::after { content:""; position:absolute; border:1px solid rgba(255,255,255,.08); border-radius:50%; }
+    .empty-orbit::before { inset:-11px; }
+    .empty-orbit::after { inset:13px; }
+    .canvas-empty h3 { font-size:20px; margin-bottom:8px; }
+    .canvas-empty p { font-size:13px; }
+    .canvas-loading { position:absolute; inset:0; z-index:5; display:grid; place-items:center; background:rgba(8,11,15,.78); backdrop-filter:blur(10px); }
+    .loading-card { width:min(370px,calc(100% - 40px)); padding:27px; text-align:center; border:1px solid var(--line-strong); border-radius:18px; background:rgba(20,26,35,.96); box-shadow:var(--shadow); }
+    .spinner { width:47px; height:47px; margin:0 auto 18px; border:3px solid rgba(255,255,255,.09); border-top-color:var(--accent); border-radius:50%; animation:spin .9s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .loading-bar { height:5px; margin-top:18px; border-radius:999px; background:rgba(255,255,255,.07); overflow:hidden; }
+    .loading-bar span { display:block; height:100%; width:35%; border-radius:inherit; background:linear-gradient(90deg,var(--accent),var(--accent-light)); animation:loadingSlide 1.8s ease-in-out infinite; }
+    @keyframes loadingSlide { 0%{transform:translateX(-120%)} 60%,100%{transform:translateX(320%)} }
+    .canvas-footer { min-height:62px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; border-top:1px solid var(--line); }
+    .render-meta { min-width:0; }
+    .render-meta strong { display:block; font-size:11px; }
+    .render-meta span { color:var(--muted-2); font-size:9px; }
+    .canvas-footer-actions { display:flex; gap:7px; }
+
+    .control-panel { display:flex; flex-direction:column; min-height:0; }
+    .control-scroll { overflow:auto; padding:17px; scrollbar-width:thin; scrollbar-color:#303946 transparent; }
+    .prompt-card { border:1px solid var(--line); border-radius:15px; padding:14px; background:rgba(255,255,255,.022); }
+    .prompt-card textarea { min-height:130px; border:0; padding:0; background:transparent; box-shadow:none!important; }
+    .prompt-card textarea:focus { background:transparent; }
+    .prompt-tools { display:flex; justify-content:space-between; align-items:center; padding-top:10px; margin-top:10px; border-top:1px solid var(--line); color:var(--muted-2); font-size:9px; }
+    .prompt-chips { display:flex; flex-wrap:wrap; gap:7px; margin:13px 0 16px; }
+    .prompt-chip { min-height:29px; padding:0 9px; border:1px solid var(--line); border-radius:9px; background:rgba(255,255,255,.035); color:var(--muted); font-size:9px; font-weight:760; }
+    .prompt-chip:hover { color:var(--text); border-color:rgba(255,107,53,.3); background:var(--accent-wash); }
+    .generate-btn { min-height:50px; }
+    .generate-subtext { margin:9px 0 0; text-align:center; color:var(--muted-2); font-size:9px; }
+    .detail-list { display:grid; margin-top:14px; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+    .detail-row { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:42px; padding:0 12px; border-bottom:1px solid var(--line); font-size:10px; }
+    .detail-row:last-child { border-bottom:0; }
+    .detail-row span:first-child { color:var(--muted-2); }
+    .detail-row span:last-child { color:#cbd1da; font-weight:700; text-align:right; }
+    .feedback-box { margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
+    .rating-row { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin:10px 0 13px; }
+    .rating-btn { min-height:34px; border:1px solid var(--line); border-radius:9px; background:rgba(255,255,255,.025); color:var(--muted); font-size:11px; font-weight:800; }
+    .rating-btn.active { color:#15191f; background:var(--warning); border-color:var(--warning); }
+
+    .toast-region { position:fixed; right:20px; bottom:20px; z-index:100; display:grid; gap:10px; pointer-events:none; }
+    .toast { min-width:280px; max-width:390px; display:flex; gap:12px; padding:14px; border:1px solid var(--line-strong); border-radius:14px; background:rgba(21,27,36,.96); box-shadow:var(--shadow); backdrop-filter:blur(18px); animation:toastIn .22s ease; }
+    .toast.success { color:var(--text); border-color:rgba(69,211,154,.24); }
+    .toast.error { color:var(--text); border-color:rgba(255,107,120,.3); }
+    .toast-icon { width:30px; height:30px; display:grid; place-items:center; border-radius:9px; flex:0 0 auto; }
+    .toast.success .toast-icon { background:var(--success-wash); color:var(--success); }
+    .toast.error .toast-icon { background:var(--danger-wash); color:var(--danger); }
+    .toast strong { display:block; font-size:12px; margin-bottom:3px; }
+    .toast p { margin:0; font-size:10px; line-height:1.4; }
+    @keyframes toastIn { from { opacity:0; transform:translateY(10px) scale(.98); } }
+
+    .skeleton { position:relative; overflow:hidden; background:rgba(255,255,255,.045); border-radius:10px; }
+    .skeleton::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.055),transparent); transform:translateX(-100%); animation:shimmer 1.35s infinite; }
+    @keyframes shimmer { to { transform:translateX(100%); } }
+    .project-skeleton { min-height:226px; padding:20px; }
+    .sk-circle { width:48px; height:48px; border-radius:14px; }
+    .sk-line { height:11px; margin-top:20px; }
+
+    @media (max-width: 1220px) {
+      .workspace { grid-template-columns: 220px minmax(450px,1fr) 310px; }
+      .landing-hero { gap:42px; grid-template-columns:1fr 440px; }
+      .dashboard-summary { grid-template-columns:1fr 1fr; }
+      .summary-main { grid-column:1/-1; }
+    }
+    @media (max-width: 980px) {
+      .landing-hero, .auth-wrap, .create-layout { grid-template-columns:1fr; }
+      .landing-hero { min-height:auto; }
+      .product-preview { min-height:520px; }
+      .auth-visual { min-height:380px; border-right:0; border-bottom:1px solid var(--line); }
+      .feature-strip { grid-template-columns:1fr; }
+      .workspace { height:auto; min-height:0; grid-template-columns:1fr; }
+      .asset-panel, .control-panel { max-height:none; }
+      .canvas-panel { min-height:620px; order:-1; }
+      .studio-shell { padding:14px; }
+    }
+    @media (max-width: 720px) {
+      :root { --header-h:64px; }
+      .site-header { padding:0 16px; }
+      .brand-word { font-size:18px; }
+      .shell, .landing-shell { padding-left:16px; padding-right:16px; }
+      .landing-shell { padding-top:40px; }
+      h1 { font-size:48px; }
+      .product-preview { min-height:470px; }
+      .preview-canvas { min-height:350px; }
+      .metal-part { transform:scale(.8) rotateX(58deg) rotateZ(-37deg); }
+      .header-user span { display:none; }
+      .dashboard-summary { grid-template-columns:1fr; }
+      .summary-main { grid-column:auto; }
+      .page-head, .project-toolbar, .studio-head { align-items:flex-start; flex-direction:column; }
+      .page-head .btn, .project-toolbar .search-box { width:100%; }
+      .form-grid { grid-template-columns:1fr; }
+      .auth-form, .auth-visual, .form-panel { padding:25px; }
+      .canvas-panel { min-height:540px; }
+      .canvas-footer { align-items:flex-start; flex-direction:column; }
+      .canvas-footer-actions { width:100%; }
+      .canvas-footer-actions .btn { flex:1; }
+      .studio-title-wrap p { max-width:280px; }
+      .studio-actions .hide-mobile { display:none; }
+      .toast-region { left:12px; right:12px; bottom:12px; }
+      .toast { min-width:0; max-width:none; width:100%; }
+    }
   </style>
 </head>
 <body>
-<header><div class="brand">MECH<span>VIZ</span></div><div id="headerActions"></div></header>
-<main class="shell">
-  <section id="landing" class="hero">
-    <div class="card"><span class="tag">AI MECHANICAL VISUALIZATION</span><h1>Turn rough sketches into polished 3D concepts.</h1><p>Upload a mechanical sketch or photo, choose the finish and viewpoint, and generate a professional concept render. Revise it in plain English.</p><button class="btn primary" onclick="showAuth()">Create your first render</button></div>
-    <div class="card"><h2>What Mechviz does</h2><div class="grid"><p><b>1. Upload</b><br>Use a hand sketch, whiteboard photo or basic drawing.</p><p><b>2. Render</b><br>OpenAI converts the reference into a clean mechanical visualization.</p><p><b>3. Revise</b><br>Change materials, viewpoints or specific features without starting over.</p><div class="notice">Concept visualizations are not certified CAD or manufacturing drawings.</div></div></div>
-  </section>
+  <div class="ambient-grid"></div>
 
-  <section id="auth" class="card auth hidden">
-    <div class="tabs"><button id="loginTab" class="btn primary" onclick="setAuthMode('login')">Log in</button><button id="signupTab" class="btn secondary" onclick="setAuthMode('signup')">Create account</button></div>
-    <div id="nameField" class="field hidden"><label>Name</label><input id="authName"></div>
-    <div class="field"><label>Email</label><input id="authEmail" type="email"></div><br>
-    <div class="field"><label>Password</label><input id="authPassword" type="password"></div><br>
-    <button class="btn primary" onclick="submitAuth()" id="authSubmit">Log in</button><p id="authMessage"></p>
-  </section>
+  <header class="site-header">
+    <button class="brand btn-quiet" onclick="goHome()" aria-label="Mechviz home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-word">MECH<span>VIZ</span></span>
+    </button>
+    <div id="headerActions" class="header-actions"></div>
+  </header>
 
-  <section id="dashboard" class="hidden">
-    <div class="topline"><div><h2>Your projects</h2><p>Each project keeps its source image, render history and approved result.</p></div><button class="btn primary" onclick="showNewProject()">New project</button></div>
-    <div id="projectList" class="projects"></div>
-  </section>
+  <main>
+    <section id="landing" class="landing-shell">
+      <div class="landing-hero">
+        <div class="hero-copy">
+          <span class="eyebrow"><span class="eyebrow-dot"></span>AI mechanical visualization</span>
+          <h1>From rough idea to convincing concept.</h1>
+          <p class="lead">Transform a sketch, photo, or basic drawing into a polished mechanical visualization—then refine materials, viewpoint, and presentation in plain English.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" onclick="showAuth('signup')">
+              Start a project
+              <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+            <button class="btn btn-secondary btn-lg" onclick="showAuth('login')">Log in</button>
+          </div>
+          <div class="hero-proof">
+            <div class="proof-item"><span class="proof-check">✓</span>Upload any clear reference</div>
+            <div class="proof-item"><span class="proof-check">✓</span>Revise without starting over</div>
+            <div class="proof-item"><span class="proof-check">✓</span>Export high-resolution PNG</div>
+          </div>
+        </div>
 
-  <section id="newProject" class="card hidden">
-    <div class="topline"><h2>Create a project</h2><button class="btn secondary" onclick="showDashboard()">Cancel</button></div>
-    <div class="grid two">
-      <div class="field"><label>Project name</label><input id="projectName" placeholder="Mounting bracket"></div>
-      <div class="field"><label>Render style</label><select id="renderStyle"><option value="clean_cad">Clean CAD style</option><option value="technical">Technical illustration</option><option value="photorealistic">Photorealistic</option><option value="exploded">Exploded view</option><option value="cutaway">Cutaway concept</option><option value="white_background">White background</option></select></div>
-      <div class="field"><label>Viewpoint</label><select id="viewpoint"><option>isometric</option><option>front three-quarter</option><option>side view</option><option>top view</option></select></div>
-      <div class="field"><label>Material</label><input id="material" value="machined aluminum"></div>
-    </div><br>
-    <div class="field"><label>Description and details that matter</label><textarea id="projectDescription" placeholder="Describe the object, approximate dimensions and features that must not change."></textarea></div><br>
-    <div class="field"><label>Source image</label><input id="sourceFile" type="file" accept="image/png,image/jpeg,image/webp"></div><br>
-    <button class="btn primary" id="createProjectButton" onclick="createProject()">Create project</button><p id="projectMessage"></p>
-  </section>
+        <div class="product-preview" aria-label="Mechviz product preview">
+          <div class="preview-topbar">
+            <div class="window-dots"><i></i><i></i><i></i></div>
+            <div class="preview-status">Render complete</div>
+          </div>
+          <div class="preview-canvas">
+            <div class="metal-part" aria-hidden="true">
+              <div class="plate"></div><div class="arm"></div>
+              <div class="hole h1"></div><div class="hole h2"></div><div class="hole h3"></div>
+            </div>
+          </div>
+          <div class="preview-caption">
+            <div><strong>Machined mounting bracket</strong><p>Photorealistic · Isometric · Aluminum</p></div>
+            <span class="status-badge approved">Approved</span>
+          </div>
+        </div>
+      </div>
 
-  <section id="studio" class="hidden">
-    <div class="topline"><div><h2 id="studioTitle">Project</h2><p id="studioDescription"></p></div><button class="btn secondary" onclick="showDashboard()">All projects</button></div>
-    <div class="studio">
-      <aside class="card"><h3>Source</h3><img id="sourcePreview" class="thumb"><p class="notice">The source is treated as the geometry reference. The result is still an AI interpretation.</p><h3>History</h3><div id="renderHistory" class="history"></div></aside>
-      <section class="card"><div id="viewer" class="viewer"><p>No render yet.</p></div><div style="display:flex;gap:10px;margin-top:14px"><button class="btn secondary" onclick="downloadRender()">Download PNG</button><button class="btn primary" onclick="approveRender()">Approve render</button></div></section>
-      <aside class="card"><h3>Generate or revise</h3><div class="field"><label>Instruction</label><textarea id="renderInstruction" placeholder="Example: keep the geometry identical, change the finish to black anodized aluminum and show an isometric view."></textarea></div><br><button class="btn primary" id="generateButton" onclick="generateRender()">Generate render</button><p id="renderMessage"></p><hr style="border:0;border-top:1px solid var(--line);margin:24px 0"><h3>Feedback</h3><div class="field"><label>Overall rating</label><select id="rating"><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3">3 — Usable</option><option value="2">2 — Weak</option><option value="1">1 — Poor</option></select></div><br><div class="field"><label>Comments</label><textarea id="feedbackComments"></textarea></div><br><button class="btn secondary" onclick="submitFeedback()">Submit feedback</button></aside>
-    </div>
-  </section>
-</main>
-<script>
-let mode='login', token=localStorage.getItem('mechviz_token')||'', currentProject=null, currentRender=null;
-const sections=['landing','auth','dashboard','newProject','studio'];
-function show(id){sections.forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));updateHeader()}
-function call(action,payload={}){return new Promise((resolve,reject)=>google.script.run.withSuccessHandler(r=>r.ok?resolve(r.data):reject(new Error(r.error))).withFailureHandler(reject).api(action,{...payload,token}))}
-function updateHeader(){document.getElementById('headerActions').innerHTML=token?'<button class="btn secondary" onclick="logout()">Log out</button>':''}
-function showAuth(){show('auth')}function setAuthMode(v){mode=v;document.getElementById('nameField').classList.toggle('hidden',v==='login');document.getElementById('authSubmit').textContent=v==='login'?'Log in':'Create account';document.getElementById('loginTab').className='btn '+(v==='login'?'primary':'secondary');document.getElementById('signupTab').className='btn '+(v==='signup'?'primary':'secondary')}
-async function submitAuth(){const msg=document.getElementById('authMessage');try{msg.textContent='Working…';const data=await call(mode,{name:document.getElementById('authName').value,email:document.getElementById('authEmail').value,password:document.getElementById('authPassword').value});token=data.token;localStorage.setItem('mechviz_token',token);showDashboard()}catch(e){msg.className='error';msg.textContent=e.message}}
-async function logout(){await call('logout').catch(()=>{});token='';localStorage.removeItem('mechviz_token');show('landing')}
-async function showDashboard(){show('dashboard');const list=document.getElementById('projectList');list.innerHTML='<p>Loading…</p>';try{const data=await call('listProjects');list.innerHTML=data.projects.length?data.projects.map(p=>`<article class="card project" onclick="openProject('${p.projectId}')"><span class="tag">${p.status}</span><h3>${escapeHtml(p.name)}</h3><p>${escapeHtml(p.description||'No description')}</p><small>${new Date(p.updatedAt).toLocaleString()}</small></article>`).join(''):'<div class="card"><h3>No projects yet</h3><p>Create the first Mechviz render.</p></div>'}catch(e){if(/sign in|expired/i.test(e.message))logout();else list.innerHTML='<p class="error">'+escapeHtml(e.message)+'</p>'}}
-function showNewProject(){show('newProject')}
-function fileToDataUrl(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
-async function createProject(){const msg=document.getElementById('projectMessage'),btn=document.getElementById('createProjectButton'),file=document.getElementById('sourceFile').files[0];try{btn.disabled=true;btn.textContent='Creating…';msg.className='';if(!file)throw new Error('Choose a source image.');if(!document.getElementById('projectName').value.trim())throw new Error('Enter a project name.');msg.textContent='Uploading source image…';const dataUrl=await fileToDataUrl(file);const data=await call('createProject',{project:{name:document.getElementById('projectName').value,description:document.getElementById('projectDescription').value,renderStyle:document.getElementById('renderStyle').value,viewpoint:document.getElementById('viewpoint').value,material:document.getElementById('material').value,background:'white studio',source:{fileName:file.name,dataUrl}}});msg.textContent='Project created. Opening studio…';await openProject(data.project.project_id)}catch(e){msg.className='error';msg.textContent=e&&e.message?e.message:'The project could not be created.'}finally{btn.disabled=false;btn.textContent='Create project'}}
-async function openProject(id){show('studio');const data=await call('getProject',{projectId:id});currentProject=data;document.getElementById('studioTitle').textContent=data.project.project_name;document.getElementById('studioDescription').textContent=data.project.description||'';document.getElementById('sourcePreview').src=data.sourceDataUrl;renderHistory(data.renders);if(data.renders.length)selectRender(data.renders[data.renders.length-1]);else{currentRender=null;document.getElementById('viewer').innerHTML='<p>No render yet. Add an instruction and generate one.</p>'}}
-function renderHistory(renders){document.getElementById('renderHistory').innerHTML=renders.length?renders.map((r,i)=>`<button onclick="selectRenderByIndex(${i})"><img class="thumb" src="${r.dataUrl}"><small>Revision ${r.revisionNumber}${r.approved?' — approved':''}</small></button>`).join(''):'<p>No renders yet.</p>'}
-function selectRenderByIndex(index){if(currentProject&&currentProject.renders&&currentProject.renders[index])selectRender(currentProject.renders[index]);}
-function selectRender(r){currentRender=r;document.getElementById('viewer').innerHTML=`<img src="${r.dataUrl}" alt="Mechanical concept render">`;document.querySelectorAll('.history button').forEach(x=>x.classList.remove('active'))}
-async function generateRender(){const btn=document.getElementById('generateButton'),msg=document.getElementById('renderMessage');try{btn.disabled=true;msg.textContent='OpenAI is generating the render…';const data=await call('generateRender',{projectId:currentProject.project.project_id,parentRenderId:currentRender?currentRender.renderId:'',instruction:document.getElementById('renderInstruction').value});currentRender=data.render;await openProject(currentProject.project.project_id);msg.className='success';msg.textContent='Render complete.'}catch(e){msg.className='error';msg.textContent=e.message}finally{btn.disabled=false}}
-async function approveRender(){if(!currentRender)return;await call('approveRender',{projectId:currentProject.project.project_id,renderId:currentRender.renderId});await openProject(currentProject.project.project_id)}
-function downloadRender(){if(!currentRender)return;const a=document.createElement('a');a.href=currentRender.dataUrl;a.download=(currentProject.project.project_name||'mechviz')+'.png';a.click()}
-async function submitFeedback(){if(!currentProject)return;await call('submitFeedback',{projectId:currentProject.project.project_id,renderId:currentRender?currentRender.renderId:'',rating:Number(document.getElementById('rating').value),accuracyRating:Number(document.getElementById('rating').value),usefulnessRating:Number(document.getElementById('rating').value),comments:document.getElementById('feedbackComments').value});alert('Feedback saved.')}
-function escapeHtml(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-(async()=>{updateHeader();if(token){try{await call('me');showDashboard()}catch(e){token='';localStorage.removeItem('mechviz_token');show('landing')}}else show('landing')})();
-</script>
+      <div class="feature-strip">
+        <article class="feature-card">
+          <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M4 17.5V6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5Z"/><path d="m7 16 3.2-3.3 2.4 2.4 1.7-1.8L18 17M8.5 9.2h.01"/></svg></span>
+          <h3>Reference-first</h3><p>Your uploaded image remains the visual geometry reference throughout the workflow.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12v8.5"/></svg></span>
+          <h3>Built for mechanical concepts</h3><p>Material, finish, viewpoint, and presentation controls are designed around physical products.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 1 0-2.4 5.8"/><path d="M20 4v7h-7"/></svg></span>
+          <h3>Revision history</h3><p>Keep every iteration, compare versions, and approve the final direction without losing earlier work.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="auth" class="shell hidden">
+      <div class="panel auth-wrap">
+        <div class="auth-visual">
+          <div>
+            <span class="eyebrow"><span class="eyebrow-dot"></span>Concept studio</span>
+            <h2 style="margin-top:20px">Build better-looking ideas, faster.</h2>
+            <p>Mechviz gives rough mechanical concepts the visual clarity they need for presentations, feedback, and early-stage decisions.</p>
+          </div>
+          <div class="auth-blueprint"><div class="blueprint-shape"></div></div>
+        </div>
+        <div class="auth-form">
+          <div class="brand" style="pointer-events:none"><span class="brand-mark"></span><span class="brand-word">MECH<span>VIZ</span></span></div>
+          <div class="auth-tabs">
+            <button id="loginTab" onclick="setAuthMode('login')">Log in</button>
+            <button id="signupTab" onclick="setAuthMode('signup')">Create account</button>
+          </div>
+          <div id="nameField" class="field hidden">
+            <label for="authName">Name</label>
+            <div class="input-wrap"><svg class="icon input-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><input class="with-icon" id="authName" autocomplete="name" placeholder="Your name"></div>
+          </div>
+          <div class="field">
+            <label for="authEmail">Email</label>
+            <div class="input-wrap"><svg class="icon input-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><input class="with-icon" id="authEmail" type="email" autocomplete="email" placeholder="name@example.com"></div>
+          </div>
+          <div class="field">
+            <label for="authPassword">Password</label>
+            <div class="input-wrap"><svg class="icon input-icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input class="with-icon" id="authPassword" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div>
+          </div>
+          <button id="authSubmit" class="btn btn-primary btn-lg btn-block" style="margin-top:23px" onclick="submitAuth()">Log in</button>
+          <p id="authMessage" class="form-message"></p>
+          <p class="helper" style="margin-top:22px">Concept visualizations are AI interpretations and are not certified CAD or manufacturing drawings.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="dashboard" class="shell hidden">
+      <div class="page-head">
+        <div><div class="page-kicker">Workspace</div><h2>Your projects</h2><p>Move from reference image to approved concept in one focused workspace.</p></div>
+        <button class="btn btn-primary btn-lg" onclick="showNewProject()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New project</button>
+      </div>
+
+      <div class="dashboard-summary">
+        <article class="panel summary-main">
+          <span class="eyebrow"><span class="eyebrow-dot"></span>Ready to visualize</span>
+          <h3>Create the next concept</h3>
+          <p>Start with the clearest sketch or photo you have. Mechviz will build the presentation quality around it.</p>
+        </article>
+        <article class="panel metric-card"><span class="metric-icon"><svg class="icon" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12v8.5"/></svg></span><div><div id="projectCount" class="metric-value">—</div><div class="metric-label">Total projects</div></div></article>
+        <article class="panel metric-card"><span class="metric-icon"><svg class="icon" viewBox="0 0 24 24"><path d="m8 12 3 3 5-6"/><circle cx="12" cy="12" r="9"/></svg></span><div><div id="approvedCount" class="metric-value">—</div><div class="metric-label">Approved concepts</div></div></article>
+      </div>
+
+      <div class="project-toolbar">
+        <h3>Recent work</h3>
+        <div class="search-box"><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="projectSearch" placeholder="Search projects" oninput="filterProjects()"></div>
+      </div>
+      <div id="projectList" class="projects"></div>
+    </section>
+
+    <section id="newProject" class="shell hidden">
+      <div class="page-head">
+        <div><div class="page-kicker">New project</div><h2>Set the visual direction</h2><p>Define the important details once, then refine the result inside the studio.</p></div>
+        <button class="btn btn-secondary" onclick="showDashboard()"><svg class="icon" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>Back to projects</button>
+      </div>
+
+      <div class="create-layout">
+        <div class="panel form-panel">
+          <div class="section-title"><span class="section-number">01</span><div><h3 style="margin:0">Project details</h3><span class="helper">Name the concept and describe what must remain accurate.</span></div></div>
+          <div class="form-grid">
+            <div class="field"><label for="projectName">Project name</label><input id="projectName" placeholder="Lawnmower deck concept"></div>
+            <div class="field"><label for="renderStyle">Visual style</label><select id="renderStyle"><option value="photorealistic">Photorealistic product render</option><option value="clean_cad">Clean CAD presentation</option><option value="technical">Technical illustration</option><option value="exploded">Exploded view</option><option value="cutaway">Cutaway concept</option><option value="white_background">White studio background</option></select></div>
+            <div class="field"><label for="viewpoint">Viewpoint</label><select id="viewpoint"><option value="isometric">Isometric</option><option value="front three-quarter">Front three-quarter</option><option value="side view">Side view</option><option value="top view">Top view</option></select></div>
+            <div class="field"><label for="material">Primary material</label><input id="material" value="machined aluminum" placeholder="Powder-coated steel"></div>
+          </div>
+          <div class="divider"></div>
+          <div class="section-title"><span class="section-number">02</span><div><h3 style="margin:0">Geometry notes</h3><span class="helper">Call out holes, proportions, moving parts, and features the AI should preserve.</span></div></div>
+          <div class="field"><textarea id="projectDescription" placeholder="Example: Preserve the wheel placement, handle angle, mower deck shape, engine position, and overall proportions. Create a realistic production-quality model with clean materials and studio lighting."></textarea></div>
+          <p id="projectMessage" class="form-message"></p>
+          <button id="createProjectButton" class="btn btn-primary btn-lg btn-block" onclick="createProject()"><svg class="icon" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12v8.5"/></svg>Create project</button>
+        </div>
+
+        <aside class="create-side">
+          <div class="panel form-panel">
+            <div class="section-title"><span class="section-number">03</span><div><h3 style="margin:0">Source image</h3><span class="helper">PNG, JPG, or WEBP. Clear angles produce better results.</span></div></div>
+            <div id="dropZone" class="drop-zone">
+              <input id="sourceFile" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload source image">
+              <div id="dropPlaceholder">
+                <span class="drop-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M5 13v6h14v-6"/></svg></span>
+                <h3>Drop your reference here</h3>
+                <p>or click to choose an image</p>
+              </div>
+              <div id="dropPreviewWrap" class="hidden" style="width:100%"><img id="dropPreview" class="drop-preview" alt="Selected source preview"><div id="fileMeta" class="file-meta"></div></div>
+            </div>
+          </div>
+          <div class="panel tip-card">
+            <h3>For a stronger result</h3>
+            <div class="tip-list">
+              <div class="tip"><span class="tip-check">✓</span><span>Use a clean photo or sketch with the full object visible.</span></div>
+              <div class="tip"><span class="tip-check">✓</span><span>Describe the features that cannot change in the geometry notes.</span></div>
+              <div class="tip"><span class="tip-check">✓</span><span>Use revisions for finish and presentation changes after the first render.</span></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="studio" class="studio-shell hidden">
+      <div class="studio-head">
+        <div class="studio-title-wrap">
+          <button class="btn btn-quiet icon-btn" onclick="showDashboard()" title="All projects"><svg class="icon" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+          <div><h2 id="studioTitle">Project</h2><p id="studioDescription"></p></div>
+        </div>
+        <div class="studio-actions">
+          <span id="projectStatusBadge" class="status-badge">Ready</span>
+          <button class="btn btn-secondary hide-mobile" onclick="downloadRender()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Export</button>
+        </div>
+      </div>
+
+      <div class="workspace">
+        <aside class="workspace-panel asset-panel">
+          <div class="panel-head"><div><div class="panel-label">Reference</div><h3>Source & history</h3></div></div>
+          <div class="asset-scroll">
+            <div class="source-frame"><img id="sourcePreview" alt="Source image"><span class="source-tag">Geometry reference</span></div>
+            <div class="geometry-note"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg><span>The source guides geometry, but every result remains an AI interpretation.</span></div>
+            <div class="panel-label" style="margin-bottom:9px">Revision history</div>
+            <div id="renderHistory" class="history-list"></div>
+          </div>
+        </aside>
+
+        <section id="canvasPanel" class="workspace-panel canvas-panel">
+          <div class="canvas-toolbar">
+            <div class="toolbar-group">
+              <button class="tool-button" onclick="adjustZoom(-.1)" title="Zoom out"><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M20 20l-4-4"/></svg></button>
+              <button class="tool-button" onclick="resetZoom()" title="Fit to view"><svg class="icon" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg></button>
+              <button class="tool-button" onclick="adjustZoom(.1)" title="Zoom in"><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M11 8v6M8 11h6M20 20l-4-4"/></svg></button>
+            </div>
+            <div class="canvas-status"><i></i><span id="canvasStatusText">Studio ready</span></div>
+            <div class="toolbar-group"><button class="tool-button" onclick="toggleFullscreen()" title="Fullscreen"><svg class="icon" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg></button></div>
+          </div>
+          <div id="viewer" class="canvas-stage">
+            <div class="canvas-empty"><span class="empty-orbit"><svg class="icon" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12v8.5"/></svg></span><h3>Your canvas is ready</h3><p>Add a clear instruction in the control panel, then generate the first visualization.</p></div>
+          </div>
+          <div class="canvas-footer">
+            <div class="render-meta"><strong id="renderMetaTitle">No render selected</strong><span id="renderMetaDetail">Generate a concept to begin revision history.</span></div>
+            <div class="canvas-footer-actions">
+              <button class="btn btn-secondary" onclick="downloadRender()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>PNG</button>
+              <button id="approveButton" class="btn btn-success" onclick="approveRender()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="m8 12 3 3 5-6"/><circle cx="12" cy="12" r="9"/></svg>Approve</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="workspace-panel control-panel">
+          <div class="panel-head"><div><div class="panel-label">Controls</div><h3>Generate or revise</h3></div></div>
+          <div class="control-scroll">
+            <div class="field"><label for="renderInstruction">Instruction</label></div>
+            <div class="prompt-card">
+              <textarea id="renderInstruction" maxlength="900" placeholder="Keep the geometry identical and create a photorealistic production model with realistic materials, clean studio lighting, and an isometric view."></textarea>
+              <div class="prompt-tools"><span>Describe only what should change</span><span id="promptCount">0 / 900</span></div>
+            </div>
+            <div class="prompt-chips">
+              <button class="prompt-chip" onclick="usePrompt('Keep the geometry identical and create a photorealistic production-quality model with realistic materials and studio lighting.')">Photorealistic</button>
+              <button class="prompt-chip" onclick="usePrompt('Keep all geometry unchanged. Change the finish to matte black powder-coated steel with subtle texture.')">Matte black</button>
+              <button class="prompt-chip" onclick="usePrompt('Preserve the geometry exactly and present the object on a clean white studio background with soft shadows.')">White studio</button>
+              <button class="prompt-chip" onclick="usePrompt('Keep the same geometry and create a clean exploded view showing the major components separated logically.')">Exploded view</button>
+            </div>
+            <button id="generateButton" class="btn btn-primary btn-block generate-btn" onclick="generateRender()"><svg class="icon" viewBox="0 0 24 24"><path d="m12 3 1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg>Generate render</button>
+            <p class="generate-subtext">Each generation uses OpenAI API credits.</p>
+            <p id="renderMessage" class="form-message"></p>
+
+            <div class="detail-list">
+              <div class="detail-row"><span>Visual style</span><span id="detailStyle">—</span></div>
+              <div class="detail-row"><span>Viewpoint</span><span id="detailViewpoint">—</span></div>
+              <div class="detail-row"><span>Material</span><span id="detailMaterial">—</span></div>
+              <div class="detail-row"><span>Revision</span><span id="detailRevision">—</span></div>
+            </div>
+
+            <div class="feedback-box">
+              <div class="panel-label">Rate this result</div>
+              <div id="ratingRow" class="rating-row">
+                <button class="rating-btn" onclick="setRating(1)">1</button><button class="rating-btn" onclick="setRating(2)">2</button><button class="rating-btn" onclick="setRating(3)">3</button><button class="rating-btn" onclick="setRating(4)">4</button><button class="rating-btn active" onclick="setRating(5)">5</button>
+              </div>
+              <div class="field"><textarea id="feedbackComments" style="min-height:82px" placeholder="What worked, and what should improve?"></textarea></div>
+              <button class="btn btn-secondary btn-block" style="margin-top:10px" onclick="submitFeedback()">Submit feedback</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <div id="toastRegion" class="toast-region" aria-live="polite"></div>
+
+  <script>
+    let mode = 'login';
+    let token = localStorage.getItem('mechviz_token') || '';
+    let currentUser = null;
+    let currentProject = null;
+    let currentRender = null;
+    let projectsCache = [];
+    let selectedRating = 5;
+    let zoomLevel = 1;
+    let generationTimer = null;
+    const sections = ['landing', 'auth', 'dashboard', 'newProject', 'studio'];
+
+    const icons = {
+      user: '<svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+      logout: '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"/></svg>',
+      check: '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="m8 12 3 3 5-6"/><circle cx="12" cy="12" r="9"/></svg>',
+      alert: '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>'
+    };
+
+    function show(id) {
+      sections.forEach(sectionId => document.getElementById(sectionId).classList.toggle('hidden', sectionId !== id));
+      document.body.dataset.section = id;
+      updateHeader();
+      window.scrollTo({top: 0, behavior: 'auto'});
+    }
+
+    function call(action, payload = {}) {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response && response.ok) resolve(response.data);
+            else reject(new Error(response && response.error ? response.error : 'The request could not be completed.'));
+          })
+          .withFailureHandler(error => reject(new Error(error && error.message ? error.message : String(error || 'Apps Script request failed.'))))
+          .api(action, {...payload, token});
+      });
+    }
+
+    function updateHeader() {
+      const root = document.getElementById('headerActions');
+      if (!token) {
+        root.innerHTML = document.body.dataset.section === 'landing'
+          ? '<button class="btn btn-quiet" onclick="showAuth(\'login\')">Log in</button><button class="btn btn-primary" onclick="showAuth(\'signup\')">Get started</button>'
+          : '<button class="btn btn-quiet" onclick="goHome()">Back to home</button>';
+        return;
+      }
+      const name = currentUser && currentUser.name ? currentUser.name : 'Account';
+      root.innerHTML = '<div class="header-user"><div class="avatar">' + initials(name) + '</div><span>' + escapeHtml(name) + '</span></div><button class="btn btn-quiet" onclick="logout()">' + icons.logout + '<span class="hide-mobile">Log out</span></button>';
+    }
+
+    function goHome() { token ? showDashboard() : show('landing'); }
+
+    function showAuth(requestedMode) {
+      show('auth');
+      setAuthMode(requestedMode || 'login');
+      setTimeout(() => document.getElementById(requestedMode === 'signup' ? 'authName' : 'authEmail').focus(), 80);
+    }
+
+    function setAuthMode(value) {
+      mode = value;
+      document.getElementById('nameField').classList.toggle('hidden', value === 'login');
+      document.getElementById('authSubmit').textContent = value === 'login' ? 'Log in' : 'Create account';
+      document.getElementById('loginTab').classList.toggle('active', value === 'login');
+      document.getElementById('signupTab').classList.toggle('active', value === 'signup');
+      document.getElementById('authPassword').setAttribute('autocomplete', value === 'login' ? 'current-password' : 'new-password');
+      setMessage('authMessage', '');
+    }
+
+    async function submitAuth() {
+      const button = document.getElementById('authSubmit');
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      try {
+        if (!email || !password) throw new Error('Enter your email and password.');
+        setButtonBusy(button, true, mode === 'login' ? 'Logging in…' : 'Creating account…');
+        setMessage('authMessage', 'Securing your workspace…');
+        const data = await call(mode, {name: document.getElementById('authName').value.trim(), email, password});
+        token = data.token;
+        currentUser = data.user || null;
+        localStorage.setItem('mechviz_token', token);
+        toast('success', mode === 'login' ? 'Welcome back' : 'Workspace created', 'Your Mechviz projects are ready.');
+        await showDashboard();
+      } catch (error) {
+        setMessage('authMessage', error.message, 'error');
+      } finally {
+        setButtonBusy(button, false, mode === 'login' ? 'Log in' : 'Create account');
+      }
+    }
+
+    async function logout() {
+      await call('logout').catch(() => {});
+      token = '';
+      currentUser = null;
+      currentProject = null;
+      currentRender = null;
+      localStorage.removeItem('mechviz_token');
+      show('landing');
+      toast('success', 'Signed out', 'Your local session has been cleared.');
+    }
+
+    async function showDashboard() {
+      show('dashboard');
+      renderProjectSkeletons();
+      try {
+        const data = await call('listProjects');
+        projectsCache = Array.isArray(data.projects) ? data.projects : [];
+        document.getElementById('projectCount').textContent = projectsCache.length;
+        document.getElementById('approvedCount').textContent = projectsCache.filter(project => String(project.status).toLowerCase() === 'approved').length;
+        renderProjects(projectsCache);
+      } catch (error) {
+        if (/sign in|expired/i.test(error.message)) {
+          token = '';
+          localStorage.removeItem('mechviz_token');
+          showAuth('login');
+          setMessage('authMessage', 'Your session expired. Please log in again.', 'error');
+        } else {
+          document.getElementById('projectList').innerHTML = '<div class="panel empty-state"><h3>Projects could not be loaded</h3><p>' + escapeHtml(error.message) + '</p><button class="btn btn-secondary" onclick="showDashboard()">Try again</button></div>';
+        }
+      }
+    }
+
+    function renderProjectSkeletons() {
+      document.getElementById('projectList').innerHTML = Array.from({length: 4}, () => '<div class="panel project-skeleton"><div class="skeleton sk-circle"></div><div class="skeleton sk-line" style="width:70%"></div><div class="skeleton sk-line" style="width:88%;margin-top:10px"></div><div class="skeleton sk-line" style="width:54%;margin-top:10px"></div></div>').join('');
+    }
+
+    function renderProjects(projects) {
+      const list = document.getElementById('projectList');
+      if (!projects.length) {
+        list.innerHTML = '<div class="panel empty-state"><span class="empty-icon"><svg class="icon" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12v8.5"/></svg></span><h3>No projects yet</h3><p>Upload your first reference image and create a polished mechanical concept.</p><button class="btn btn-primary" onclick="showNewProject()">Create your first project</button></div>';
+        return;
+      }
+      list.innerHTML = projects.map(project => {
+        const status = String(project.status || 'ready').toLowerCase();
+        return '<article class="panel project-card" tabindex="0" role="button" onclick="openProject(\'' + attr(project.projectId) + '\')" onkeydown="if(event.key===\'Enter\')openProject(\'' + attr(project.projectId) + '\')">' +
+          '<div class="project-card-top"><span class="project-art">' + projectGlyph(project.renderStyle) + '</span><span class="status-badge ' + attr(status) + '">' + escapeHtml(statusLabel(status)) + '</span></div>' +
+          '<h3>' + escapeHtml(project.name) + '</h3><p>' + escapeHtml(project.description || 'No project description yet.') + '</p>' +
+          '<div class="project-card-bottom"><span>' + escapeHtml(formatDate(project.updatedAt)) + '</span><span class="project-open">Open <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></article>';
+      }).join('');
+    }
+
+    function filterProjects() {
+      const query = document.getElementById('projectSearch').value.trim().toLowerCase();
+      const filtered = !query ? projectsCache : projectsCache.filter(project => [project.name, project.description, project.status, project.renderStyle].some(value => String(value || '').toLowerCase().includes(query)));
+      renderProjects(filtered);
+    }
+
+    function showNewProject() {
+      show('newProject');
+      setMessage('projectMessage', '');
+      document.getElementById('projectName').focus();
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('The image could not be read.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function previewFile(file) {
+      if (!file) return clearFilePreview();
+      if (!/^image\/(png|jpeg|webp)$/i.test(file.type)) {
+        document.getElementById('sourceFile').value = '';
+        toast('error', 'Unsupported file', 'Choose a PNG, JPG, or WEBP image.');
+        return clearFilePreview();
+      }
+      const url = URL.createObjectURL(file);
+      const zone = document.getElementById('dropZone');
+      zone.classList.add('has-file');
+      document.getElementById('dropPlaceholder').classList.add('hidden');
+      document.getElementById('dropPreviewWrap').classList.remove('hidden');
+      document.getElementById('dropPreview').src = url;
+      document.getElementById('fileMeta').innerHTML = '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M4 17.5V6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5Z"/></svg><span><strong>' + escapeHtml(file.name) + '</strong><br>' + escapeHtml(formatBytes(file.size)) + '</span>';
+    }
+
+    function clearFilePreview() {
+      const zone = document.getElementById('dropZone');
+      zone.classList.remove('has-file');
+      document.getElementById('dropPlaceholder').classList.remove('hidden');
+      document.getElementById('dropPreviewWrap').classList.add('hidden');
+      document.getElementById('dropPreview').removeAttribute('src');
+      document.getElementById('fileMeta').innerHTML = '';
+    }
+
+    async function createProject() {
+      const message = document.getElementById('projectMessage');
+      const button = document.getElementById('createProjectButton');
+      const file = document.getElementById('sourceFile').files[0];
+      const name = document.getElementById('projectName').value.trim();
+      try {
+        if (!name) throw new Error('Enter a project name.');
+        if (!file) throw new Error('Choose a source image.');
+        setButtonBusy(button, true, 'Creating project…');
+        setMessage('projectMessage', 'Uploading and securing the reference image…');
+        const dataUrl = await fileToDataUrl(file);
+        const data = await call('createProject', {project: {
+          name,
+          description: document.getElementById('projectDescription').value.trim(),
+          renderStyle: document.getElementById('renderStyle').value,
+          viewpoint: document.getElementById('viewpoint').value,
+          material: document.getElementById('material').value.trim(),
+          background: 'white studio',
+          source: {fileName: file.name, dataUrl}
+        }});
+        toast('success', 'Project created', 'Opening the Mechviz studio.');
+        await openProject(data.project.project_id);
+      } catch (error) {
+        setMessage('projectMessage', error.message, 'error');
+      } finally {
+        setButtonBusy(button, false, 'Create project');
+      }
+    }
+
+    async function openProject(projectId) {
+      show('studio');
+      setCanvasLoading(true, 'Opening project', 'Loading the reference and render history…');
+      try {
+        const data = await call('getProject', {projectId});
+        currentProject = data;
+        currentRender = null;
+        document.getElementById('studioTitle').textContent = data.project.project_name || 'Untitled project';
+        document.getElementById('studioDescription').textContent = data.project.description || 'Mechanical visualization project';
+        document.getElementById('sourcePreview').src = data.sourceDataUrl || '';
+        updateProjectDetails();
+        renderHistory(data.renders || []);
+        if (data.renders && data.renders.length) selectRender(data.renders[data.renders.length - 1]);
+        else showEmptyCanvas();
+      } catch (error) {
+        showEmptyCanvas('Project could not be opened', error.message);
+        toast('error', 'Unable to open project', error.message);
+      } finally {
+        setCanvasLoading(false);
+      }
+    }
+
+    function renderHistory(renders) {
+      const history = document.getElementById('renderHistory');
+      if (!renders.length) {
+        history.innerHTML = '<div class="history-empty">No renders yet.<br>Your first result will appear here.</div>';
+        return;
+      }
+      history.innerHTML = renders.map(render => '<button class="history-item" data-render-id="' + attr(render.renderId) + '" onclick="selectRenderById(\'' + attr(render.renderId) + '\')"><img class="history-thumb" src="' + attr(render.dataUrl) + '" alt="Revision ' + attr(render.revisionNumber) + '"><span class="history-copy"><strong>Revision ' + escapeHtml(render.revisionNumber) + '</strong><span class="' + (render.approved ? 'approved-line' : '') + '">' + (render.approved ? '✓ Approved' : escapeHtml(formatDate(render.createdAt))) + '</span></span></button>').join('');
+    }
+
+    function selectRenderById(renderId) {
+      if (!currentProject || !currentProject.renders) return;
+      const render = currentProject.renders.find(item => String(item.renderId) === String(renderId));
+      if (render) selectRender(render);
+    }
+
+    function selectRender(render) {
+      currentRender = render;
+      zoomLevel = 1;
+      const viewer = document.getElementById('viewer');
+      viewer.innerHTML = '<img id="viewerImage" class="render-image" src="' + attr(render.dataUrl) + '" alt="Mechanical concept render">';
+      document.querySelectorAll('.history-item').forEach(item => item.classList.toggle('active', item.dataset.renderId === String(render.renderId)));
+      document.getElementById('renderMetaTitle').textContent = 'Revision ' + render.revisionNumber + (render.approved ? ' · Approved' : '');
+      document.getElementById('renderMetaDetail').textContent = render.instruction || 'Initial project render';
+      document.getElementById('detailRevision').textContent = String(render.revisionNumber || '—');
+      document.getElementById('approveButton').innerHTML = render.approved ? icons.check + 'Approved' : icons.check + 'Approve';
+      document.getElementById('approveButton').disabled = Boolean(render.approved);
+      document.getElementById('canvasStatusText').textContent = render.approved ? 'Approved result' : 'Render ready';
+    }
+
+    function showEmptyCanvas(title, copy) {
+      currentRender = null;
+      document.getElementById('viewer').innerHTML = '<div class="canvas-empty"><span class="empty-orbit"><svg class="icon" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12v8.5"/></svg></span><h3>' + escapeHtml(title || 'Your canvas is ready') + '</h3><p>' + escapeHtml(copy || 'Add a clear instruction in the control panel, then generate the first visualization.') + '</p></div>';
+      document.getElementById('renderMetaTitle').textContent = 'No render selected';
+      document.getElementById('renderMetaDetail').textContent = 'Generate a concept to begin revision history.';
+      document.getElementById('detailRevision').textContent = '—';
+      document.getElementById('approveButton').disabled = true;
+    }
+
+    function updateProjectDetails() {
+      if (!currentProject) return;
+      const project = currentProject.project;
+      const status = String(project.status || 'ready').toLowerCase();
+      const badge = document.getElementById('projectStatusBadge');
+      badge.className = 'status-badge ' + status;
+      badge.textContent = statusLabel(status);
+      document.getElementById('detailStyle').textContent = pretty(project.render_style || '—');
+      document.getElementById('detailViewpoint').textContent = pretty(project.viewpoint || '—');
+      document.getElementById('detailMaterial').textContent = project.material || '—';
+    }
+
+    function usePrompt(text) {
+      const field = document.getElementById('renderInstruction');
+      field.value = text;
+      updatePromptCount();
+      field.focus();
+    }
+
+    async function generateRender() {
+      if (!currentProject) return;
+      const button = document.getElementById('generateButton');
+      const instruction = document.getElementById('renderInstruction').value.trim();
+      try {
+        if (!instruction) throw new Error('Describe the render or revision you want.');
+        setButtonBusy(button, true, currentRender ? 'Creating revision…' : 'Generating render…');
+        setMessage('renderMessage', 'Preparing your mechanical visualization…');
+        setCanvasLoading(true, currentRender ? 'Creating revision' : 'Generating concept', 'Preserving geometry and applying your visual direction…');
+        startGenerationMessages();
+        const data = await call('generateRender', {
+          projectId: currentProject.project.project_id,
+          parentRenderId: currentRender ? currentRender.renderId : '',
+          instruction
+        });
+        stopGenerationMessages();
+        currentRender = data.render;
+        toast('success', 'Render complete', 'A new revision has been added to the project.');
+        await openProject(currentProject.project.project_id);
+        setMessage('renderMessage', 'Render complete.', 'success');
+      } catch (error) {
+        stopGenerationMessages();
+        setCanvasLoading(false);
+        setMessage('renderMessage', error.message, 'error');
+        toast('error', 'Render failed', error.message);
+      } finally {
+        setButtonBusy(button, false, 'Generate render');
+      }
+    }
+
+    function startGenerationMessages() {
+      const messages = ['Reading the source geometry…', 'Building the material and lighting…', 'Refining mechanical details…', 'Finishing the presentation render…'];
+      let index = 0;
+      clearInterval(generationTimer);
+      generationTimer = setInterval(() => {
+        index = Math.min(index + 1, messages.length - 1);
+        const copy = document.getElementById('loadingCopy');
+        if (copy) copy.textContent = messages[index];
+      }, 6000);
+    }
+
+    function stopGenerationMessages() { clearInterval(generationTimer); generationTimer = null; }
+
+    function setCanvasLoading(active, title, copy) {
+      const viewer = document.getElementById('viewer');
+      const existing = document.getElementById('canvasLoading');
+      if (!active) { if (existing) existing.remove(); return; }
+      if (existing) {
+        const h = existing.querySelector('h3');
+        const p = existing.querySelector('p');
+        if (h) h.textContent = title || 'Working';
+        if (p) p.textContent = copy || 'Please wait…';
+        return;
+      }
+      const overlay = document.createElement('div');
+      overlay.id = 'canvasLoading';
+      overlay.className = 'canvas-loading';
+      overlay.innerHTML = '<div class="loading-card"><div class="spinner"></div><h3>' + escapeHtml(title || 'Working') + '</h3><p id="loadingCopy">' + escapeHtml(copy || 'Please wait…') + '</p><div class="loading-bar"><span></span></div></div>';
+      viewer.appendChild(overlay);
+    }
+
+    async function approveRender() {
+      if (!currentProject || !currentRender || currentRender.approved) return;
+      const button = document.getElementById('approveButton');
+      try {
+        setButtonBusy(button, true, 'Approving…');
+        await call('approveRender', {projectId: currentProject.project.project_id, renderId: currentRender.renderId});
+        toast('success', 'Render approved', 'This revision is now the approved project result.');
+        await openProject(currentProject.project.project_id);
+      } catch (error) {
+        toast('error', 'Approval failed', error.message);
+      } finally {
+        setButtonBusy(button, false, 'Approve');
+      }
+    }
+
+    function downloadRender() {
+      if (!currentRender) {
+        toast('error', 'Nothing to export', 'Generate or select a render first.');
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = currentRender.dataUrl;
+      link.download = sanitizeFileName((currentProject.project.project_name || 'mechviz') + '-revision-' + currentRender.revisionNumber) + '.png';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast('success', 'PNG downloaded', 'Your render has been saved locally.');
+    }
+
+    async function submitFeedback() {
+      if (!currentProject) return;
+      try {
+        await call('submitFeedback', {
+          projectId: currentProject.project.project_id,
+          renderId: currentRender ? currentRender.renderId : '',
+          rating: selectedRating,
+          accuracyRating: selectedRating,
+          usefulnessRating: selectedRating,
+          comments: document.getElementById('feedbackComments').value.trim()
+        });
+        document.getElementById('feedbackComments').value = '';
+        toast('success', 'Feedback saved', 'Thank you—this helps improve Mechviz.');
+      } catch (error) {
+        toast('error', 'Feedback not saved', error.message);
+      }
+    }
+
+    function setRating(value) {
+      selectedRating = value;
+      document.querySelectorAll('.rating-btn').forEach((button, index) => button.classList.toggle('active', index + 1 === value));
+    }
+
+    function adjustZoom(delta) {
+      const image = document.getElementById('viewerImage');
+      if (!image) return;
+      zoomLevel = Math.max(.5, Math.min(2.3, zoomLevel + delta));
+      image.style.transform = 'scale(' + zoomLevel.toFixed(2) + ')';
+    }
+
+    function resetZoom() {
+      zoomLevel = 1;
+      const image = document.getElementById('viewerImage');
+      if (image) image.style.transform = 'scale(1)';
+    }
+
+    function toggleFullscreen() {
+      const panel = document.getElementById('canvasPanel');
+      if (!document.fullscreenElement) panel.requestFullscreen && panel.requestFullscreen();
+      else document.exitFullscreen && document.exitFullscreen();
+    }
+
+    function setButtonBusy(button, busy, label) {
+      if (!button) return;
+      button.disabled = busy;
+      button.dataset.originalLabel = button.dataset.originalLabel || button.innerHTML;
+      button.innerHTML = busy ? '<span class="spinner" style="width:17px;height:17px;margin:0;border-width:2px"></span>' + escapeHtml(label) : button.dataset.originalLabel;
+      if (!busy && label) {
+        if (button.id === 'authSubmit') button.textContent = label;
+        if (button.id === 'createProjectButton') button.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12v8.5"/></svg>' + label;
+        if (button.id === 'generateButton') button.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="m12 3 1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg>' + label;
+        if (button.id === 'approveButton') button.innerHTML = icons.check + label;
+      }
+    }
+
+    function setMessage(id, text, type) {
+      const node = document.getElementById(id);
+      if (!node) return;
+      node.className = 'form-message' + (type ? ' ' + type : '');
+      node.textContent = text || '';
+    }
+
+    function toast(type, title, copy) {
+      const region = document.getElementById('toastRegion');
+      const node = document.createElement('div');
+      node.className = 'toast ' + type;
+      node.innerHTML = '<span class="toast-icon">' + (type === 'success' ? icons.check : icons.alert) + '</span><div><strong>' + escapeHtml(title) + '</strong><p>' + escapeHtml(copy || '') + '</p></div>';
+      region.appendChild(node);
+      setTimeout(() => { node.style.opacity = '0'; node.style.transform = 'translateY(8px)'; setTimeout(() => node.remove(), 220); }, 4200);
+    }
+
+    function updatePromptCount() {
+      const field = document.getElementById('renderInstruction');
+      document.getElementById('promptCount').textContent = field.value.length + ' / 900';
+    }
+
+    function statusLabel(status) {
+      return ({ready: 'Ready', rendered: 'Rendered', approved: 'Approved'})[status] || pretty(status);
+    }
+
+    function projectGlyph(style) {
+      const common = 'class="icon" style="width:23px;height:23px" viewBox="0 0 24 24"';
+      if (String(style).includes('exploded')) return '<svg ' + common + '><path d="m12 3 8 4.5L12 12 4 7.5 12 3Z"/><path d="m4 12 8 4.5 8-4.5M4 16.5 12 21l8-4.5"/></svg>';
+      if (String(style).includes('technical')) return '<svg ' + common + '><path d="M4 4h16v16H4zM8 4v16M16 4v16M4 8h16M4 16h16"/></svg>';
+      return '<svg ' + common + '><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12v8.5"/></svg>';
+    }
+
+    function formatDate(value) {
+      if (!value) return 'Recently updated';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      const diff = Date.now() - date.getTime();
+      const day = 86400000;
+      if (diff < 60000) return 'Just now';
+      if (diff < 3600000) return Math.max(1, Math.floor(diff / 60000)) + 'm ago';
+      if (diff < day) return Math.max(1, Math.floor(diff / 3600000)) + 'h ago';
+      if (diff < day * 7) return Math.max(1, Math.floor(diff / day)) + 'd ago';
+      return date.toLocaleDateString(undefined, {month:'short', day:'numeric', year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined});
+    }
+
+    function formatBytes(bytes) {
+      if (!Number(bytes)) return '0 KB';
+      if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function pretty(value) { return String(value || '').replace(/_/g, ' ').replace(/\b\w/g, character => character.toUpperCase()); }
+    function initials(value) { return String(value || 'M').trim().split(/\s+/).slice(0,2).map(part => part[0] || '').join('').toUpperCase(); }
+    function sanitizeFileName(value) { return String(value).replace(/[^a-z0-9-_]+/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase(); }
+    function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character])); }
+    function attr(value) { return escapeHtml(value).replace(/`/g, '&#096;'); }
+
+    function setupDropZone() {
+      const input = document.getElementById('sourceFile');
+      const zone = document.getElementById('dropZone');
+      input.addEventListener('change', () => previewFile(input.files[0]));
+      ['dragenter', 'dragover'].forEach(eventName => zone.addEventListener(eventName, event => { event.preventDefault(); zone.classList.add('dragging'); }));
+      ['dragleave', 'drop'].forEach(eventName => zone.addEventListener(eventName, event => { event.preventDefault(); zone.classList.remove('dragging'); }));
+      zone.addEventListener('drop', event => {
+        const file = event.dataTransfer.files && event.dataTransfer.files[0];
+        if (!file) return;
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+        input.files = transfer.files;
+        previewFile(file);
+      });
+    }
+
+    function setupKeyboard() {
+      document.addEventListener('keydown', event => {
+        if ((event.metaKey || event.ctrlKey) && event.key === 'Enter' && document.body.dataset.section === 'studio') {
+          event.preventDefault();
+          generateRender();
+        }
+        if (event.key === 'Escape' && document.fullscreenElement) document.exitFullscreen();
+      });
+    }
+
+    async function initialize() {
+      setupDropZone();
+      setupKeyboard();
+      document.getElementById('renderInstruction').addEventListener('input', updatePromptCount);
+      document.getElementById('authPassword').addEventListener('keydown', event => { if (event.key === 'Enter') submitAuth(); });
+      updatePromptCount();
+      updateHeader();
+      if (!token) return show('landing');
+      try {
+        const data = await call('me');
+        currentUser = data.user || null;
+        await showDashboard();
+      } catch (error) {
+        token = '';
+        localStorage.removeItem('mechviz_token');
+        show('landing');
+      }
+    }
+
+    initialize();
+  </script>
 </body>
 </html>
